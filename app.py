@@ -3,7 +3,6 @@ import google.generativeai as genai
 import time
 from datetime import date
 
-# إعدادات الواجهة واللغة
 st.set_page_config(page_title="تطبيق الدحيح AI", page_icon="🎓", layout="centered")
 st.markdown("""
     <style>
@@ -13,19 +12,22 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# تفعيل الذكاء الاصطناعي
+# محاولة الاتصال بالذكاء الاصطناعي مع إظهار الأخطاء
+model = None
 try:
-    API_KEY = st.secrets["GEMINI_API_KEY"]
-    genai.configure(api_key=API_KEY)
-    model = genai.GenerativeModel('gemini-1.5-flash')
-except:
-    st.warning("يرجى التأكد من إدخال مفتاح API في الإعدادات.")
+    if "GEMINI_API_KEY" in st.secrets:
+        API_KEY = st.secrets["GEMINI_API_KEY"]
+        genai.configure(api_key=API_KEY)
+        model = genai.GenerativeModel('gemini-1.5-flash')
+    else:
+        st.error("❌ تنبيه: لم يتم العثور على المفتاح في إعدادات Secrets.")
+except Exception as e:
+    st.error(f"❌ خطأ أثناء إعداد المفتاح: {e}")
 
 st.title("🎓 الدحيح AI - رفيقك للقمة")
 
-# تقسيم التطبيق إلى 5 أقسام
 tab1, tab2, tab3, tab4, tab5 = st.tabs([
-    "📅 الخطة الذكية", "🤖 المساعد الذكي", "📊 متتبع الإنجاز", "⏱️ بومودورو", "🔥 التحفيز اليومي"
+    "📅 الخطة الذكية", "🤖 المساعد الذكي", "📊 متتبع الإنجاز", "⏱️ بومودورو", "🔥 التحفيز"
 ])
 
 with tab1:
@@ -34,14 +36,17 @@ with tab1:
     hours = st.slider("كم عدد الساعات المتاحة للمذاكرة؟", 1, 10, 3)
     if st.button("إنشاء خطة المذاكرة 🚀"):
         if subjects:
-            with st.spinner("جاري تصميم خطتك الذكية..."):
-                prompt = f"طالب ثانوية عامة مصري يريد مذاكرة ({subjects}) ولديه ({hours}) ساعات. ضع له جدول زمني مقسم بالساعات يحوي فترات راحة قصيرة."
-                try:
-                    response = model.generate_content(prompt)
-                    st.success("تم إنشاء الخطة بنجاح!")
-                    st.write(response.text)
-                except:
-                    st.error("حدث خطأ في الاتصال.")
+            if model:
+                with st.spinner("جاري تصميم خطتك الذكية..."):
+                    prompt = f"طالب ثانوية عامة مصري يريد مذاكرة ({subjects}) ولديه ({hours}) ساعات. ضع له جدول زمني مقسم بالساعات يحوي فترات راحة قصيرة."
+                    try:
+                        response = model.generate_content(prompt)
+                        st.success("تم إنشاء الخطة بنجاح!")
+                        st.write(response.text)
+                    except Exception as e:
+                        st.error(f"⚠️ خطأ من سيرفرات جوجل: {e}")
+            else:
+                st.error("⚠️ لا يمكن الاتصال بالذكاء الاصطناعي حالياً.")
         else:
             st.error("يرجى كتابة المواد أولاً.")
 
@@ -51,14 +56,19 @@ with tab2:
     user_query = st.text_area("اكتب طلبك هنا:")
     if st.button("إرسال للمساعد 💬"):
         if user_query:
-            with st.spinner("المساعد يفكر..."):
-                prompt = f"أنت مساعد دراسي لطلاب الثانوية في مصر (تطبيق الدحيح AI). المستخدم يطلب ({task_type}) بخصوص: {user_query}. أجب بشكل مبسط ومباشر."
-                try:
-                    response = model.generate_content(prompt)
-                    st.info("الإجابة:")
-                    st.write(response.text)
-                except:
-                    st.error("حدث خطأ في الاتصال.")
+            if model:
+                with st.spinner("المساعد يفكر..."):
+                    prompt = f"أنت مساعد دراسي لطلاب الثانوية في مصر. المستخدم يطلب ({task_type}) بخصوص: {user_query}. أجب بشكل مبسط ومباشر."
+                    try:
+                        response = model.generate_content(prompt)
+                        st.info("الإجابة:")
+                        st.write(response.text)
+                    except Exception as e:
+                        st.error(f"⚠️ خطأ من سيرفرات جوجل: {e}")
+            else:
+                st.error("⚠️ لا يمكن الاتصال بالذكاء الاصطناعي حالياً.")
+        else:
+            st.error("يرجى كتابة طلبك أولاً.")
 
 with tab3:
     st.subheader("لوحة التحكم الخاصة بك")
@@ -86,9 +96,12 @@ with tab5:
     days_left = (exam_date - today).days
     st.error(f"⏳ متبقي على امتحانات الثانوية العامة: {max(days_left, 0)} يوماً! استمر في القتال.")
     if st.button("أحتاج لدفعة أمل! ✨"):
-        with st.spinner("جاري جلب التحفيز..."):
-            try:
-                response = model.generate_content("اكتب رسالة تحفيزية قصيرة جداً (سطرين) لطالب ثانوية عامة مصري لرفع معنوياته.")
-                st.success(response.text)
-            except:
-                st.error("حدث خطأ في الاتصال.")
+        if model:
+            with st.spinner("جاري جلب التحفيز..."):
+                try:
+                    response = model.generate_content("اكتب رسالة تحفيزية قصيرة جداً (سطرين) لطالب ثانوية عامة مصري لرفع معنوياته.")
+                    st.success(response.text)
+                except Exception as e:
+                    st.error(f"⚠️ خطأ من سيرفرات جوجل: {e}")
+        else:
+            st.error("⚠️ لا يمكن الاتصال بالذكاء الاصطناعي حالياً.")
