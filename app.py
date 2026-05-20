@@ -18,7 +18,7 @@ try:
     if "GEMINI_API_KEY" in st.secrets:
         API_KEY = st.secrets["GEMINI_API_KEY"]
         genai.configure(api_key=API_KEY)
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('gemini-pro')
     else:
         st.error("❌ تنبيه: لم يتم العثور على المفتاح في إعدادات Secrets.")
 except Exception as e:
