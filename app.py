@@ -97,7 +97,7 @@ with tab4:
         timer_placeholder = st.empty()
         for i in range(25, 0, -1):
             timer_placeholder.markdown(f"<h1 style='text-align: center; color: #F97316;'>{i}:00</h1>", unsafe_allow_html=True)
-            time.sleep(0.1) 
+            time.sleep(60) 
         st.success("انتهت الجلسة! خذ استراحة 5 دقائق.")
 
 with tab5:
