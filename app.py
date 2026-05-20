@@ -12,17 +12,28 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# محاولة الاتصال بالذكاء الاصطناعي مع إظهار الأخطاء
+# ------------------ سحر البرمجة: البحث التلقائي عن الموديل ------------------
 model = None
 try:
     if "GEMINI_API_KEY" in st.secrets:
-        API_KEY = st.secrets["GEMINI_API_KEY"]
-        genai.configure(api_key=API_KEY)
-        model = genai.GenerativeModel('gemini-pro')
+        genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+        
+        # الكود سيقوم بالبحث عن الموديل المتاح في حسابك واستخدامه فوراً
+        available_model = None
+        for m in genai.list_models():
+            if 'generateContent' in m.supported_generation_methods:
+                available_model = m.name
+                break
+        
+        if available_model:
+            model = genai.GenerativeModel(available_model)
+        else:
+            st.error("❌ حسابك على جوجل لا يحتوي على موديلات متاحة حالياً.")
     else:
-        st.error("❌ تنبيه: لم يتم العثور على المفتاح في إعدادات Secrets.")
+        st.error("❌ لم يتم العثور على المفتاح في إعدادات Secrets.")
 except Exception as e:
-    st.error(f"❌ خطأ أثناء إعداد المفتاح: {e}")
+    st.error(f"❌ خطأ في الاتصال: {e}")
+# ----------------------------------------------------------------------------
 
 st.title("🎓 الدحيح AI - رفيقك للقمة")
 
@@ -44,9 +55,9 @@ with tab1:
                         st.success("تم إنشاء الخطة بنجاح!")
                         st.write(response.text)
                     except Exception as e:
-                        st.error(f"⚠️ خطأ من سيرفرات جوجل: {e}")
+                        st.error(f"⚠️ خطأ من جوجل: {e}")
             else:
-                st.error("⚠️ لا يمكن الاتصال بالذكاء الاصطناعي حالياً.")
+                st.error("⚠️ لا يمكن الاتصال بالذكاء الاصطناعي.")
         else:
             st.error("يرجى كتابة المواد أولاً.")
 
@@ -64,9 +75,9 @@ with tab2:
                         st.info("الإجابة:")
                         st.write(response.text)
                     except Exception as e:
-                        st.error(f"⚠️ خطأ من سيرفرات جوجل: {e}")
+                        st.error(f"⚠️ خطأ من جوجل: {e}")
             else:
-                st.error("⚠️ لا يمكن الاتصال بالذكاء الاصطناعي حالياً.")
+                st.error("⚠️ لا يمكن الاتصال بالذكاء الاصطناعي.")
         else:
             st.error("يرجى كتابة طلبك أولاً.")
 
@@ -102,6 +113,6 @@ with tab5:
                     response = model.generate_content("اكتب رسالة تحفيزية قصيرة جداً (سطرين) لطالب ثانوية عامة مصري لرفع معنوياته.")
                     st.success(response.text)
                 except Exception as e:
-                    st.error(f"⚠️ خطأ من سيرفرات جوجل: {e}")
+                    st.error(f"⚠️ خطأ من جوجل: {e}")
         else:
-            st.error("⚠️ لا يمكن الاتصال بالذكاء الاصطناعي حالياً.")
+            st.error("⚠️ لا يمكن الاتصال بالذكاء الاصطناعي.")
